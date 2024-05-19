@@ -62,8 +62,8 @@ Contributions are welcome! Please fork this repository and submit a pull request
 
 If you have any questions or feedback, feel free to reach out.
 
-- [Your Name](mailto:your-email@example.com)
-- [GitHub](https://github.com/your-username)
+- [Alexandre Forestier](mailto:alexandreforestier1107@gmail.com)
+- [GitHub](https://github.com/AlxFrst)
 
 ---
 
