@@ -1,6 +1,7 @@
+
 # ⚡ K8s Deployment Generator ⚡
 
-![Docker](https://img.shields.io/badge/Docker-20.10-blue) ![Node.js](https://img.shields.io/badge/Node.js-20-brightgreen) ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-orange)
+![Docker](https://img.shields.io/badge/Docker-20.10-blue) ![Node.js](https://img.shields.io/badge/Node.js-20-brightgreen)
 
 ## 📜 Description
 
@@ -23,17 +24,11 @@ Generate Kubernetes Deployment Files from Docker Compose 🐳. This project allo
 
 ### Installation
 
-1. **Clone the repository**:
-    ```sh
-    git clone https://github.com/your-username/k8s-deployment-generator.git
-    cd k8s-deployment-generator
-    ```
+1. **Launch the Docker container**:
 
-2. **Build and run the Docker container**:
-    ```sh
-    docker build -t k8s-deployment-generator .
-    docker run -p 3000:3000 k8s-deployment-generator
-    ```
+```sh
+docker run -d -p 3000:3000 alxfrst/k8s-deployment-generator
+```
 
 3. **Open your browser** and navigate to `http://localhost:3000`.
 
@@ -42,13 +37,34 @@ Generate Kubernetes Deployment Files from Docker Compose 🐳. This project allo
 If you prefer using Docker Compose, create a `docker-compose.yml` file with the following content:
 
 ```yaml
-version: '3.8'
-
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: alxfrst/k8s-deployment-generator
     ports:
       - "3000:3000"
     restart: always
+```
+
+Then, run:
+```sh
+docker-compose up -d
+```
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please fork this repository and submit a pull request for any improvements.
+
+## 📞 Contact
+
+If you have any questions or feedback, feel free to reach out.
+
+- [Your Name](mailto:your-email@example.com)
+- [GitHub](https://github.com/your-username)
+
+---
+
+Happy coding! 🎉
