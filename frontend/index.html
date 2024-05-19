@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kubernetes Deployment Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .file-tree {
+            cursor: pointer;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .folder::before {
+            content: '📁';
+            padding-right: 5px;
+        }
+
+        .file::before {
+            content: '📄';
+            padding-right: 5px;
+        }
+
+        .code-editor {
+            background-color: #1e1e1e;
+            color: #dcdcdc;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 10px;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #333;
+            color: #dcdcdc;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body class="bg-black text-gray-200">
+
+    <!-- Navbar -->
+    <nav class="bg-gray-800 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-white">⚡ K8s Deployment Generator</a>
+        </div>
+    </nav>
+
+    <!-- Hero Banner -->
+    <section class="bg-gray-800 py-20">
+        <div class="container mx-auto text-center">
+            <h1 class="text-4xl font-bold mb-4">Generate Kubernetes Deployment Files from Docker Compose 🐳</h1>
+            <p class="text-gray-400 mb-8">Easily convert your docker-compose.yml to Kubernetes deployment files with a
+                visual representation.</p>
+            <input id="fileInput" type="file" accept=".yml, .yaml" class="hidden">
+            <button onclick="document.getElementById('fileInput').click()"
+                class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+                📤 Upload Docker Compose File
+            </button>
+            <div id="progressContainer" class="hidden mt-4">
+                <div class="relative pt-1">
+                    <div class="flex mb-2 items-center justify-between">
+                        <div>
+                            <span
+                                class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-gray-800 bg-gray-300">
+                                Uploading...
+                            </span>
+                        </div>
+                    </div>
+                    <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-300">
+                        <div id="progressBar" style="width:0%"
+                            class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gray-600">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="errorMessage" class="hidden text-red-500 mt-4"></div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container mx-auto py-8">
+        <div id="fileTree" class="file-tree hidden">
+            <h2 class="text-2xl font-bold mb-4">Generated Files 📁</h2>
+            <div id="treeContainer" class="bg-gray-800 p-4 rounded-lg"></div>
+        </div>
+        <div id="fileContent" class="mt-8 hidden relative">
+            <h2 class="text-2xl font-bold mb-4">File Content 📄</h2>
+            <button class="copy-btn" onclick="copyToClipboard()">Copy</button>
+            <pre id="fileText" class="code-editor overflow-auto"></pre>
+        </div>
+        <div id="downloadSection" class="hidden text-center mt-8">
+            <a id="downloadLink" href="/download"
+                class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+                📥 Download ZIP
+            </a>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 p-4 mt-8">
+        <div class="container mx-auto text-center">
+            <div class="flex justify-center space-x-4 mb-4">
+                <a href="#" class="text-gray-400 hover:text-white">🌐</a>
+                <a href="#" class="text-gray-400 hover:text-white">🐦</a>
+                <a href="#" class="text-gray-400 hover:text-white">🔗</a>
+            </div>
+            <p class="text-gray-400">© 2024 K8s Deployment Generator. All rights reserved. Made with ❤️ by Alx</p>
+        </div>
+    </footer>
+
+    <!-- Copy Notification -->
+    <div id="copyNotification" class="fixed bottom-4 right-4 bg-green-600 text-white p-3 rounded-lg shadow-lg hidden">
+        Content copied to clipboard! 📋
+    </div>
+
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                // Show progress container
+                document.getElementById('progressContainer').classList.remove('hidden');
+                document.getElementById('progressBar').style.width = '0%';
+                document.getElementById('errorMessage').classList.add('hidden');
+
+                fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Upload response:', data);
+                        displayFileTree(data.files);
+                        document.getElementById('progressContainer').classList.add('hidden');
+                        document.getElementById('downloadSection').classList.remove('hidden');
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        document.getElementById('errorMessage').textContent = 'Error uploading file. Please try again.';
+                        document.getElementById('errorMessage').classList.remove('hidden');
+                    });
+            }
+        });
+
+        function displayFileTree(files) {
+            const container = document.getElementById('treeContainer');
+            container.innerHTML = '';
+
+            Object.keys(files).forEach(serviceDir => {
+                const serviceDiv = document.createElement('div');
+                serviceDiv.classList.add('mb-4');
+
+                const serviceTitle = document.createElement('h3');
+                serviceTitle.classList.add('text-xl', 'font-bold', 'folder');
+                serviceTitle.textContent = serviceDir;
+                serviceTitle.onclick = () => toggleFolder(serviceDiv);
+                serviceDiv.appendChild(serviceTitle);
+
+                const fileList = document.createElement('ul');
+                fileList.classList.add('pl-4', 'hidden');
+
+                Object.keys(files[serviceDir]).forEach(fileName => {
+                    const fileItem = document.createElement('li');
+                    fileItem.textContent = fileName;
+                    fileItem.classList.add('text-gray-300', 'hover:text-white', 'file');
+                    fileItem.onclick = (event) => {
+                        event.stopPropagation();
+                        displayFileContent(files[serviceDir][fileName]);
+                    };
+                    fileList.appendChild(fileItem);
+                });
+
+                serviceDiv.appendChild(fileList);
+                container.appendChild(serviceDiv);
+            });
+
+            document.getElementById('fileTree').classList.remove('hidden');
+        }
+
+        function toggleFolder(folder) {
+            const fileList = folder.querySelector('ul');
+            fileList.classList.toggle('hidden');
+        }
+
+        function displayFileContent(content) {
+            document.getElementById('fileText').textContent = content;
+            document.getElementById('fileContent').classList.remove('hidden');
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('fileText').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const notification = document.getElementById('copyNotification');
+                notification.classList.remove('hidden');
+                setTimeout(() => {
+                    notification.classList.add('hidden');
+                }, 2000);
+            });
+        }
+    </script>
+
+</body>
+
+</html>
